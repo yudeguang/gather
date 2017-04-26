@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-//客户端类型 chrome ,ie,firefox,
+//客户端类型 chrome ,ie,firefox 等
 var Agent string
 
 //采集类
@@ -59,7 +59,7 @@ func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *Gather) getUtil(URL, refererURL, cookies string) (html string, returnedURL string, status int) {
+func (this *Gather) GetUtil(URL, refererURL, cookies string) (html string, returnedURL string, status int) {
 
 	req, err := newHttpRequest("GET", URL, nil)
 	hasErrFatal(err)
@@ -87,7 +87,7 @@ func (this *Gather) getUtil(URL, refererURL, cookies string) (html string, retur
 }
 
 //post 方式获取数据 手动设置Cookie
-func (this *Gather) postUtil(URL, refererURL, cookies string, post map[string]string) (html string, url2 string, status int) {
+func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]string) (html string, url2 string, status int) {
 	postValues := url.Values{}
 	for k, v := range post {
 		postValues.Set(k, v)
@@ -124,11 +124,11 @@ func (this *Gather) postUtil(URL, refererURL, cookies string, post map[string]st
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *Gather) get(URL, refererURL string) (html string, returnedURL string, status int) {
-	return this.getUtil(URL, refererURL, "")
+func (this *Gather) Get(URL, refererURL string) (html string, returnedURL string, status int) {
+	return this.GetUtil(URL, refererURL, "")
 }
 
 //post方式获取数据,手动设置Cookie
-func (this *Gather) post(URL, refererURL string, post map[string]string) (html string, url2 string, status int) {
-	return this.postUtil(URL, refererURL, "", post)
+func (this *Gather) Post(URL, refererURL string, post map[string]string) (html string, url2 string, status int) {
+	return this.PostUtil(URL, refererURL, "", post)
 }
