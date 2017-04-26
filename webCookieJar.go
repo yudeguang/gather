@@ -8,7 +8,7 @@ import (
 )
 
 //是否打印COOKIE的变更
-var logOn = false
+var CookieLogOpen = false
 
 //cookie的保存对象
 type webCookieJar struct {
@@ -26,7 +26,7 @@ func (j *webCookieJar) SetCookies(u *url.URL, newCookies []*http.Cookie) {
 	defer j.lk.Unlock()
 	//如果原来有了就覆盖,根据host和Path判断
 	oldCookies := j.cookies[u.Host]
-	if logOn {
+	if CookieLogOpen {
 		log.Println("COOKIE变更:", u.String())
 	}
 	for newIndex := 0; newIndex < len(newCookies); newIndex++ {
@@ -36,7 +36,7 @@ func (j *webCookieJar) SetCookies(u *url.URL, newCookies []*http.Cookie) {
 				oldCookies[oldIndex].Path == newCookies[newIndex].Path {
 				//原来有的，就直接替换就可以
 				oldCookies[oldIndex] = newCookies[newIndex]
-				if logOn {
+				if CookieLogOpen {
 					log.Println("替换cookie:", newCookies[newIndex].String())
 				}
 				isFound = true
@@ -45,7 +45,7 @@ func (j *webCookieJar) SetCookies(u *url.URL, newCookies []*http.Cookie) {
 		}
 		if !isFound {
 			oldCookies = append(oldCookies, newCookies[newIndex])
-			if logOn {
+			if CookieLogOpen {
 				log.Println("添加cookie:", newCookies[newIndex].String())
 			}
 		}
