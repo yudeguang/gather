@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//判断有无错误仅返回true或者false
+//判断有无错误,仅返回true或者false
 func hasErr(err error) bool {
 	if err != nil {
 		return true
@@ -14,7 +14,7 @@ func hasErr(err error) bool {
 	return false
 }
 
-//返回true或者false，有错误时打印错误
+//判断有无错误,返回true或者false，并且有错误时打印错误
 func hasErrPrintln(err error) bool {
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
@@ -25,7 +25,7 @@ func hasErrPrintln(err error) bool {
 	return false
 }
 
-//返回true或者false，有错误时程序退出
+//判断有无错误,返回true或者false，并且有错误时打印并退出
 func hasErrFatal(err error) bool {
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)

@@ -12,7 +12,7 @@ import (
 )
 
 //客户端类型 chrome ,ie,firefox 等
-var Agent string
+var agent string
 
 //采集类
 var gather Gather
@@ -22,7 +22,11 @@ type Gather struct {
 }
 
 //默认传一个nil Jar进去
-func New() *Gather {
+func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
+	if agent != "" {
+		agent = defaultAgent
+	}
+	cookieLogOpen = isCookieLogOpen
 	j := newWebCookieJar()
 	tr := &http.Transport{
 		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
@@ -43,7 +47,7 @@ func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.8")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
-	switch strings.ToLower(Agent) {
+	switch strings.ToLower(agent) {
 	case "baidu":
 		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Baiduspider/2.0;++http://www.baidu.com/search/spider.html)")
 	case "google":
