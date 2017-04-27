@@ -22,7 +22,7 @@ type Gather struct {
 	client *http.Client
 }
 
-//默认传一个nil Jar进去
+//实例化Gather，defaultAgent为默认客户端, isCookieLogOpen为Cookie变更时是否打印
 func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
 	if agent != "" {
 		agent = defaultAgent
@@ -56,9 +56,14 @@ func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error
 	case "bing":
 		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; bingbot/2.0;+http://www.bing.com/bingbot.htm)")
 	case "chrome":
-		req.Header.Set("key", `Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36`)
+		req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36`)
+	case "360":
+		req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36`)
+	case "ie", "ie9":
+		req.Header.Set("User-Agent", `Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)`)
+
 	default:
-		req.Header.Set("key", `Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36`)
+		req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36`)
 	}
 	return req, nil
 }
