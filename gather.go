@@ -3,6 +3,7 @@ package gather
 import (
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -63,7 +64,7 @@ func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *Gather) GetUtil(URL, refererURL, cookies string) (html string, returnedURL string, status int) {
+func (this *Gather) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
 
 	req, err := newHttpRequest("GET", URL, nil)
 	hasErrFatal(err)
@@ -80,18 +81,18 @@ func (this *Gather) GetUtil(URL, refererURL, cookies string) (html string, retur
 	// 200表示成功获取
 	if resp.StatusCode != 200 {
 		log.Println(resp.StatusCode)
-		return "", "", 0
+		return "", "", fmt.Errorf(string(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if hasErrPrintln(err) {
-		return "", "", 0
+		return "", "", err
 	}
 	//下面很可能还有存在GZIP压缩的情况
-	return string(data), resp.Request.URL.String(), 1
+	return string(data), resp.Request.URL.String(), nil
 }
 
 //post 方式获取数据 手动设置Cookie
-func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]string) (html string, url2 string, status int) {
+func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]string) (html, returnedURL string, err error) {
 	postValues := url.Values{}
 	for k, v := range post {
 		postValues.Set(k, v)
@@ -117,22 +118,22 @@ func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]st
 	// 判断是否读取成功 200为成功标识
 	if resp.StatusCode != 200 {
 		log.Println(resp.StatusCode)
-		return "", "", 0
+		return "", "", fmt.Errorf(string(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if hasErrPrintln(err) {
-		return "", "", 0
+		return "", "", err
 	}
 	//下面很可能还有存在GZIP压缩的情况
-	return string(data), resp.Request.URL.String(), 1
+	return string(data), resp.Request.URL.String(), nil
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *Gather) Get(URL, refererURL string) (html string, returnedURL string, status int) {
+func (this *Gather) Get(URL, refererURL string) (html, returnedURL string, err error) {
 	return this.GetUtil(URL, refererURL, "")
 }
 
 //post方式获取数据,手动设置Cookie
-func (this *Gather) Post(URL, refererURL string, post map[string]string) (html string, url2 string, status int) {
+func (this *Gather) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
 	return this.PostUtil(URL, refererURL, "", post)
 }
