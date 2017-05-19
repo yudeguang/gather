@@ -12,23 +12,22 @@ import (
 	"strings"
 )
 
-//客户端类型 chrome ,ie,firefox 等
-var agent string
-
-//采集类
-var gather Gather
-
+/*
+数据采集类，可自动处理Cookie,共包含4种方法，其中get,post为自动处理cookie
+GetUtil与PostUtil为强行设置cookie，这种情况一般是用于登录有验证码时，手工
+把验证码设置进去。
+*/
 type Gather struct {
 	client *http.Client
+	agent  string
 }
 
 //实例化Gather，defaultAgent为默认客户端, isCookieLogOpen为Cookie变更时是否打印
 func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
-	if agent != "" {
-		agent = defaultAgent
-	}
-	cookieLogOpen = isCookieLogOpen
-	j := newWebCookieJar()
+
+	var gather Gather
+	gather.agent = defaultAgent
+	j := newWebCookieJar(isCookieLogOpen)
 	tr := &http.Transport{
 		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 		DisableCompression: true,
@@ -38,8 +37,8 @@ func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
 }
 
 //一个新的request对象，里面先设置好浏览器那些
-func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, urlStr, body)
+func (this *Gather) newHttpRequest(method, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return req, err
 	}
@@ -48,7 +47,7 @@ func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.8")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
-	switch strings.ToLower(agent) {
+	switch strings.ToLower(this.agent) {
 	case "baidu":
 		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Baiduspider/2.0;++http://www.baidu.com/search/spider.html)")
 	case "google":
@@ -71,7 +70,7 @@ func newHttpRequest(method, urlStr string, body io.Reader) (*http.Request, error
 //GET方式获取数据,手动设置Cookie
 func (this *Gather) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
 
-	req, err := newHttpRequest("GET", URL, nil)
+	req, err := this.newHttpRequest("GET", URL, nil)
 	hasErrFatal(err)
 	//有时需要加Referer参数
 	if refererURL != "" {
@@ -105,7 +104,7 @@ func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]st
 	postDataStr := postValues.Encode()
 	postDataBytes := []byte(postDataStr)
 	postBytesReader := bytes.NewReader(postDataBytes)
-	req, err := http.NewRequest("POST", URL, postBytesReader)
+	req, err := this.newHttpRequest("POST", URL, postBytesReader)
 	hasErrFatal(err)
 	//post特有HEADER信息,这个一定要加，不加form的值post不过去
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
