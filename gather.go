@@ -17,14 +17,14 @@ import (
 GetUtil与PostUtil为强行设置cookie，这种情况一般是用于登录有验证码时，手工
 把验证码设置进去。
 */
-type Gather struct {
+type GatherStruct struct {
 	client *http.Client
 	agent  string
 }
 
 //实例化Gather，defaultAgent为默认客户端, isCookieLogOpen为Cookie变更时是否打印
-func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
-	var gather Gather
+func NewGather(defaultAgent string, isCookieLogOpen bool) *GatherStruct {
+	var gather GatherStruct
 	gather.agent = defaultAgent
 	j := newWebCookieJar(isCookieLogOpen)
 	tr := &http.Transport{
@@ -36,7 +36,7 @@ func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
 }
 
 //一个新的request对象，里面先设置好浏览器那些
-func (this *Gather) newHttpRequest(method, URL string, body io.Reader) (*http.Request, error) {
+func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
 		return req, err
@@ -74,7 +74,7 @@ func (this *Gather) newHttpRequest(method, URL string, body io.Reader) (*http.Re
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *Gather) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
+func (this *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
 
 	req, err := this.newHttpRequest("GET", URL, nil)
 	hasErrFatal(err)
@@ -102,7 +102,7 @@ func (this *Gather) GetUtil(URL, refererURL, cookies string) (html, returnedURL 
 }
 
 //post 方式获取数据 手动设置Cookie
-func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]string) (html, returnedURL string, err error) {
+func (this *GatherStruct) PostUtil(URL, refererURL, cookies string, post map[string]string) (html, returnedURL string, err error) {
 	postValues := url.Values{}
 	for k, v := range post {
 		postValues.Set(k, v)
@@ -139,11 +139,11 @@ func (this *Gather) PostUtil(URL, refererURL, cookies string, post map[string]st
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *Gather) Get(URL, refererURL string) (html, returnedURL string, err error) {
+func (this *GatherStruct) Get(URL, refererURL string) (html, returnedURL string, err error) {
 	return this.GetUtil(URL, refererURL, "")
 }
 
 //post方式获取数据,手动设置Cookie
-func (this *Gather) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
+func (this *GatherStruct) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
 	return this.PostUtil(URL, refererURL, "", post)
 }
