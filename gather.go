@@ -24,7 +24,6 @@ type Gather struct {
 
 //实例化Gather，defaultAgent为默认客户端, isCookieLogOpen为Cookie变更时是否打印
 func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
-
 	var gather Gather
 	gather.agent = defaultAgent
 	j := newWebCookieJar(isCookieLogOpen)
@@ -37,15 +36,22 @@ func NewGather(defaultAgent string, isCookieLogOpen bool) *Gather {
 }
 
 //一个新的request对象，里面先设置好浏览器那些
-func (this *Gather) newHttpRequest(method, url string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, url, body)
+func (this *Gather) newHttpRequest(method, URL string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
 		return req, err
 	}
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-	req.Header.Set("Cache-Control", "max-age=0")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, sdch")
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.8")
+	req.Header.Set("Connection", "keep-alive")
+	temp, err := url.Parse(URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Host", temp.Host)
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36`)
 
 	switch strings.ToLower(this.agent) {
 	case "baidu":
