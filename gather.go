@@ -50,8 +50,8 @@ func (this *Gather) newHttpRequest(method, URL string, body io.Reader) (*http.Re
 		log.Fatal(err)
 	}
 	req.Header.Set("Host", temp.Host)
+	log.Println(temp.Host)
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36`)
 
 	switch strings.ToLower(this.agent) {
 	case "baidu":
@@ -61,7 +61,7 @@ func (this *Gather) newHttpRequest(method, URL string, body io.Reader) (*http.Re
 	case "bing":
 		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; bingbot/2.0;+http://www.bing.com/bingbot.htm)")
 	case "chrome":
-		req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36`)
+		req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36`)
 	case "360":
 		req.Header.Set("User-Agent", `Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36`)
 	case "ie", "ie9":
