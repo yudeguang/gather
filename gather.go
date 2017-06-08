@@ -43,9 +43,9 @@ func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*h
 			log.Fatal("采集器可能未初始化,请先初始化再使用(使用NewGather函数初始化) ", r)
 		}
 	}()
-
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
+		log.Println(err)
 		return req, err
 	}
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
