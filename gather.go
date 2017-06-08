@@ -37,6 +37,12 @@ func NewGather(defaultAgent string, isCookieLogOpen bool) *GatherStruct {
 
 //一个新的request对象，里面先设置好浏览器那些
 func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*http.Request, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatal("采集器可能未初始化,请先初始化再使用(使用NewGather函数初始化) ", r)
+		}
+	}()
+
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
 		return req, err
@@ -50,9 +56,8 @@ func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*h
 		log.Fatal(err)
 	}
 	req.Header.Set("Host", temp.Host)
-	log.Println(temp.Host)
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-
+	log.Println(this.agent)
 	switch strings.ToLower(this.agent) {
 	case "baidu":
 		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Baiduspider/2.0;++http://www.baidu.com/search/spider.html)")
