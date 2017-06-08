@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -53,11 +54,10 @@ func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*h
 	req.Header.Set("Connection", "keep-alive")
 	temp, err := url.Parse(URL)
 	if err != nil {
-		log.Fatal(err)
+		return req, err
 	}
 	req.Header.Set("Host", temp.Host)
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	log.Println(this.agent)
 	switch strings.ToLower(this.agent) {
 	case "baidu":
 		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Baiduspider/2.0;++http://www.baidu.com/search/spider.html)")
@@ -80,9 +80,10 @@ func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*h
 
 //GET方式获取数据,手动设置Cookie
 func (this *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
-
 	req, err := this.newHttpRequest("GET", URL, nil)
-	hasErrFatal(err)
+	if err != nil {
+		return "", "", err
+	}
 	//有时需要加Referer参数
 	if refererURL != "" {
 		req.Header.Set("Referer", refererURL)
@@ -91,15 +92,16 @@ func (this *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, return
 		req.Header.Set("Cookie", cookies)
 	}
 	resp, err := this.client.Do(req)
-	hasErrFatal(err)
+	if err != nil {
+		return "", "", err
+	}
 	defer resp.Body.Close()
 	// 200表示成功获取
 	if resp.StatusCode != 200 {
-		log.Println(resp.StatusCode)
-		return "", "", fmt.Errorf(string(resp.StatusCode))
+		return "", "", fmt.Errorf("http状态码:" + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
-	if hasErrPrintln(err) {
+	if err != nil {
 		return "", "", err
 	}
 	//下面很可能还有存在GZIP压缩的情况
@@ -116,7 +118,9 @@ func (this *GatherStruct) PostUtil(URL, refererURL, cookies string, post map[str
 	postDataBytes := []byte(postDataStr)
 	postBytesReader := bytes.NewReader(postDataBytes)
 	req, err := this.newHttpRequest("POST", URL, postBytesReader)
-	hasErrFatal(err)
+	if err != nil {
+		return "", "", err
+	}
 	//post特有HEADER信息,这个一定要加，不加form的值post不过去
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	//有时需要加Referer参数
@@ -127,19 +131,19 @@ func (this *GatherStruct) PostUtil(URL, refererURL, cookies string, post map[str
 		req.Header.Set("Cookie", cookies)
 	}
 	resp, err := this.client.Do(req)
-	hasErrFatal(err)
-
+	if err != nil {
+		return "", "", err
+	}
 	defer resp.Body.Close()
 	// 判断是否读取成功 200为成功标识
 	if resp.StatusCode != 200 {
-		log.Println(resp.StatusCode)
-		return "", "", fmt.Errorf(string(resp.StatusCode))
+		return "", "", fmt.Errorf("http状态码:" + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
-	if hasErrPrintln(err) {
+	if err != nil {
 		return "", "", err
 	}
-	//下面很可能还有存在GZIP压缩的情况
+	//其实data还可能是gzip压缩后的结果
 	return string(data), resp.Request.URL.String(), nil
 }
 
