@@ -18,21 +18,23 @@ import (
 GetUtil与PostUtil为强行设置cookie，这种情况一般是用于登录有验证码时，手工
 把验证码设置进去。
 */
+//webCookieJar可以导出，自由修改
 type GatherStruct struct {
 	client *http.Client
 	agent  string
+	J      *webCookieJar
 }
 
 //实例化Gather，defaultAgent为默认客户端, isCookieLogOpen为Cookie变更时是否打印
 func NewGather(defaultAgent string, isCookieLogOpen bool) *GatherStruct {
 	var gather GatherStruct
 	gather.agent = defaultAgent
-	j := newWebCookieJar(isCookieLogOpen)
+	gather.J = newWebCookieJar(isCookieLogOpen)
 	tr := &http.Transport{
 		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 		DisableCompression: true,
 	}
-	gather.client = &http.Client{Transport: tr, Jar: j}
+	gather.client = &http.Client{Transport: tr, Jar: gather.J}
 	return &gather
 }
 
