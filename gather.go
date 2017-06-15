@@ -2,6 +2,7 @@ package gather
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -157,4 +158,19 @@ func (this *GatherStruct) Get(URL, refererURL string) (html, returnedURL string,
 //post方式获取数据,手动设置Cookie
 func (this *GatherStruct) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
 	return this.PostUtil(URL, refererURL, "", post)
+}
+
+//解压GZIP文件
+func Ungzip(data []byte) (string, error) {
+	reader, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return "", err
+	}
+	defer reader.Close()
+	data, err = ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+
 }
