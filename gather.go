@@ -107,8 +107,13 @@ func (this *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, return
 	if err != nil {
 		return "", "", err
 	}
-	//下面很可能还有存在GZIP压缩的情况
-	return string(data), resp.Request.URL.String(), nil
+	//处理GZIP压缩的情况
+	html, err = Ungzip(data)
+	if err != nil {
+		html = string(data)
+	}
+	return html, resp.Request.URL.String(), nil
+
 }
 
 //post 方式获取数据 手动设置Cookie
@@ -146,8 +151,12 @@ func (this *GatherStruct) PostUtil(URL, refererURL, cookies string, post map[str
 	if err != nil {
 		return "", "", err
 	}
-	//其实data还可能是gzip压缩后的结果
-	return string(data), resp.Request.URL.String(), nil
+	//处理GZIP压缩的情况
+	html, err = Ungzip(data)
+	if err != nil {
+		html = string(data)
+	}
+	return html, resp.Request.URL.String(), nil
 }
 
 //GET方式获取数据,手动设置Cookie
