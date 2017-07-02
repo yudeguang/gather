@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /*
@@ -36,6 +37,8 @@ func NewGather(defaultAgent string, isCookieLogOpen bool) *GatherStruct {
 		DisableCompression: true,
 	}
 	gather.client = &http.Client{Transport: tr, Jar: gather.J}
+	//设置超时
+	gather.client.Timeout = 300 * time.Second
 	return &gather
 }
 
@@ -46,6 +49,7 @@ func (this *GatherStruct) newHttpRequest(method, URL string, body io.Reader) (*h
 			log.Fatal("采集器可能未初始化,请先初始化再使用(使用NewGather函数初始化) ", r)
 		}
 	}()
+
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
 		log.Println(err)
