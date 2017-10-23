@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -91,13 +90,12 @@ func NewGatherUtil(headers map[string]string, timeOut int, isCookieLogOpen bool)
 func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, body io.Reader) (*http.Request, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Fatal("采集器可能未初始化,请先使用NewGather或NewGatherUtil函数初始化", r)
+			return req, fmt.Errorf("采集器可能未初始化,请先使用NewGather或NewGatherUtil函数初始化再使用", r)
 		}
 	}()
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
-		log.Println(err)
 		return req, err
 	}
 	//Host 奇怪的是，client会默认加上HOST属性，并且永远放在请求的前部
