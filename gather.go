@@ -89,8 +89,8 @@ func NewGatherUtil(headers map[string]string, timeOut int, isCookieLogOpen bool)
 //一个新的request对象
 func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, body io.Reader) (*http.Request, error) {
 	defer func() {
-		if r := recover(); r != nil {
-			return nil, fmt.Errorf("采集器可能未初始化,请先使用NewGather或NewGatherUtil函数初始化再使用", r)
+		if err := recover(); err != nil {
+			panic(fmt.Sprintf("采集器可能未初始化,请先使用NewGather或NewGatherUtil函数初始化再使用,具体错误信息:%v.", err))
 		}
 	}()
 
