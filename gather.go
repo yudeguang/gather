@@ -1,4 +1,4 @@
-// 模拟浏览器进行数据采集包,可较方便的定义http头也，cookie也可以全自动化操作，
+// 模拟浏览器进行数据采集包,可较方便的定义http头，同时全自动化处理cookie
 package gather
 
 import (
@@ -31,7 +31,7 @@ type multipartPostFile struct {
 	content     []byte
 }
 
-//实例化Gather,HTTP头中除Agent外,其它全部默认, isCookieLogOpen为Cookie变更时是否打印
+//实例化Gather,HTTP头中除Agent外,其它全部默认, isCookieLogOpen为Cookie变更时是否打印,打印出来会便用观察登录等过程中Cookie的变化
 func NewGather(defaultAgent string, isCookieLogOpen bool) *GatherStruct {
 	var headers = make(map[string]string)
 	headers["User-Agent"] = defaultAgent
@@ -155,7 +155,12 @@ func (g *GatherStruct) request(req *http.Request) (html, returnedURL string, err
 	return html, resp.Request.URL.String(), nil
 }
 
-//GET方式获取数据,手动设置Cookie
+//GET方式获取数据,自动继承上次抓取时使用的Cookie
+func (g *GatherStruct) Get(URL, refererURL string) (html, returnedURL string, err error) {
+	return g.GetUtil(URL, refererURL, "")
+}
+
+//GET方式获取数据,手动设置Cookie,Cookie留空则自动继承上次抓取时使用的Cookie
 func (g *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
 	req, err := g.newHttpRequest("GET", URL, refererURL, cookies, nil)
 	if err != nil {
@@ -164,7 +169,12 @@ func (g *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, returnedU
 	return g.request(req)
 }
 
-//post 方式获取数据 手动设置Cookie
+//post方式获取数据,自动继承上次抓取时使用的Cookie
+func (g *GatherStruct) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
+	return g.PostUtil(URL, refererURL, "", post)
+}
+
+//post 方式获取数据 手动设置Cookie,Cookie留空则自动继承上次抓取时使用的Cookie
 func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, returnedURL string, err error) {
 	postValues := url.Values{}
 	for k, v := range postMap {
@@ -182,8 +192,13 @@ func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[str
 	return g.request(req)
 }
 
-//以XML的方式post数据
-func (g *GatherStruct) PostXML(URL, refererURL, cookies string, postXML string) (html, returnedURL string, err error) {
+//以XML的方式post数据,手动设置Cookie,Cookie留空则自动继承上次抓取时使用的Cookie
+func (g *GatherStruct) PostXML(URL, refererURL, postXML string) (html, returnedURL string, err error) {
+	return g.PostXMLUtil(URL, refererURL, "", postXML)
+}
+
+//以XML的方式post数据,手动设置Cookie,Cookie留空则自动继承上次抓取时使用的Cookie
+func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (html, returnedURL string, err error) {
 	g.Headers["Content-Type"] = "application/xml"
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postXML))
 	if err != nil {
@@ -192,12 +207,16 @@ func (g *GatherStruct) PostXML(URL, refererURL, cookies string, postXML string) 
 	return g.request(req)
 }
 
+func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
+	return g.PostMultipartformDataUtil(URL, refererURL, "", boundary, postValueMap, postFileMap)
+}
+
 //multipart/form-data方式POST数据
 //boundary指post“分割边界”,这个“边界数据”不能在内容其他地方出现,一般来说使用一段从概率上说“几乎不可能”的数据即可
 //postValueMap指post的普通文本,只包含name和value
 //postFileMap指上传的文件,比如图片,需在调用此函数前自行转换成[]byte,当然POST协议也可使用base64编码后,不过在此忽略此用法,base64也请转换成[]byte
 //multipart/form-data数据格式参见标准库中： mime\multipart\testdata\nested-mime,注意此处file文件是用的base64编码后的
-func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies string, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostMultipartformDataUtil(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
 	if boundary == "" {
 		boundary = `--WebKitFormBoundaryTP3TumA8yjBZCv2R`
 	}
@@ -220,16 +239,6 @@ func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies string, bo
 		return "", "", err
 	}
 	return g.request(req)
-}
-
-//GET方式获取数据,手动设置Cookie
-func (g *GatherStruct) Get(URL, refererURL string) (html, returnedURL string, err error) {
-	return g.GetUtil(URL, refererURL, "")
-}
-
-//post方式获取数据,手动设置Cookie
-func (g *GatherStruct) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
-	return g.PostUtil(URL, refererURL, "", post)
 }
 
 //解压GZIP文件
