@@ -1,3 +1,4 @@
+// 模拟浏览器进行数据采集包,可较方便的定义http头也，cookie也可以全自动化操作，
 package gather
 
 import (
@@ -16,13 +17,7 @@ import (
 	"time"
 )
 
-/*
-数据采集类,可自动处理Cookie,共包含4种方法,其中get,post为自动处理cookie
-GetUtil与PostUtil为强行设置cookie,这种情况一般是用于登录有验证码时,手工
-把验证码设置进去。
-*/
-
-//Headers与J(cookies)都导出，允许在执行过程中任意修改
+//Headers与J(cookies)都大写导出，允许在执行过程中任意修改
 type GatherStruct struct {
 	client  *http.Client
 	Headers map[string]string //定制header
@@ -93,12 +88,12 @@ func NewGatherUtil(headers map[string]string, timeOut int, isCookieLogOpen bool)
 }
 
 //一个新的request对象
-func (this *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, body io.Reader) (*http.Request, error) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		log.Fatal("采集器可能未初始化,请先使用NewGather或NewCustomizedGather函数初始化", r)
-	// 	}
-	// }()
+func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, body io.Reader) (*http.Request, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatal("采集器可能未初始化,请先使用NewGather或NewGatherUtil函数初始化", r)
+		}
+	}()
 
 	req, err := http.NewRequest(method, URL, body)
 	if err != nil {
@@ -110,14 +105,14 @@ func (this *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string
 	if err != nil {
 		return req, err
 	}
-	this.Headers["Host"] = urlInfo.Host
+	g.Headers["Host"] = urlInfo.Host
 	// Referer
 	if refererURL != "" {
-		this.Headers["Referer"] = refererURL
+		g.Headers["Referer"] = refererURL
 	}
 	//cookies
 	if cookies != "" {
-		this.Headers["Cookie"] = cookies
+		g.Headers["Cookie"] = cookies
 	}
 	//把header 按顺序添加进去
 	type headerStruct struct {
@@ -125,7 +120,7 @@ func (this *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string
 		v string
 	}
 	var h []headerStruct
-	for k, v := range this.Headers {
+	for k, v := range g.Headers {
 		h = append(h, headerStruct{k, v})
 	}
 	sort.Slice(h, func(i, j int) bool {
@@ -138,8 +133,8 @@ func (this *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string
 }
 
 //最终抓取HTML
-func (this *GatherStruct) request(req *http.Request) (html, returnedURL string, err error) {
-	resp, err := this.client.Do(req)
+func (g *GatherStruct) request(req *http.Request) (html, returnedURL string, err error) {
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return "", "", err
 	}
@@ -161,16 +156,16 @@ func (this *GatherStruct) request(req *http.Request) (html, returnedURL string, 
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
-	req, err := this.newHttpRequest("GET", URL, refererURL, cookies, nil)
+func (g *GatherStruct) GetUtil(URL, refererURL, cookies string) (html, returnedURL string, err error) {
+	req, err := g.newHttpRequest("GET", URL, refererURL, cookies, nil)
 	if err != nil {
 		return "", "", err
 	}
-	return this.request(req)
+	return g.request(req)
 }
 
 //post 方式获取数据 手动设置Cookie
-func (this *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, returnedURL string, err error) {
 	postValues := url.Values{}
 	for k, v := range postMap {
 		postValues.Set(k, v)
@@ -179,22 +174,22 @@ func (this *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[
 	postDataBytes := []byte(postDataStr)
 	postBytesReader := bytes.NewReader(postDataBytes)
 	//post Content-Type
-	this.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
-	req, err := this.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
+	g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
+	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
 	if err != nil {
 		return "", "", err
 	}
-	return this.request(req)
+	return g.request(req)
 }
 
 //以XML的方式post数据
-func (this *GatherStruct) PostXML(URL, refererURL, cookies string, postXML string) (html, returnedURL string, err error) {
-	this.Headers["Content-Type"] = "application/xml"
-	req, err := this.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postXML))
+func (g *GatherStruct) PostXML(URL, refererURL, cookies string, postXML string) (html, returnedURL string, err error) {
+	g.Headers["Content-Type"] = "application/xml"
+	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postXML))
 	if err != nil {
 		return "", "", err
 	}
-	return this.request(req)
+	return g.request(req)
 }
 
 //multipart/form-data方式POST数据
@@ -202,7 +197,7 @@ func (this *GatherStruct) PostXML(URL, refererURL, cookies string, postXML strin
 //postValueMap指post的普通文本,只包含name和value
 //postFileMap指上传的文件,比如图片,需在调用此函数前自行转换成[]byte,当然POST协议也可使用base64编码后,不过在此忽略此用法,base64也请转换成[]byte
 //multipart/form-data数据格式参见标准库中： mime\multipart\testdata\nested-mime,注意此处file文件是用的base64编码后的
-func (this *GatherStruct) PostMultipartformData(URL, refererURL, cookies string, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies string, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
 	if boundary == "" {
 		boundary = `--WebKitFormBoundaryTP3TumA8yjBZCv2R`
 	}
@@ -219,22 +214,22 @@ func (this *GatherStruct) PostMultipartformData(URL, refererURL, cookies string,
 	}
 	postData = postData + "\r\n" + boundary + `--`
 
-	this.Headers["Content-Type"] = "multipart/form-data; boundary=" + boundary
+	g.Headers["Content-Type"] = "multipart/form-data; boundary=" + boundary
 	req, err := http.NewRequest("POST", URL, strings.NewReader(postData))
 	if err != nil {
 		return "", "", err
 	}
-	return this.request(req)
+	return g.request(req)
 }
 
 //GET方式获取数据,手动设置Cookie
-func (this *GatherStruct) Get(URL, refererURL string) (html, returnedURL string, err error) {
-	return this.GetUtil(URL, refererURL, "")
+func (g *GatherStruct) Get(URL, refererURL string) (html, returnedURL string, err error) {
+	return g.GetUtil(URL, refererURL, "")
 }
 
 //post方式获取数据,手动设置Cookie
-func (this *GatherStruct) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
-	return this.PostUtil(URL, refererURL, "", post)
+func (g *GatherStruct) Post(URL, refererURL string, post map[string]string) (html, returnedURL string, err error) {
+	return g.PostUtil(URL, refererURL, "", post)
 }
 
 //解压GZIP文件
