@@ -98,12 +98,7 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 	if err != nil {
 		return req, err
 	}
-	//Host 奇怪的是，client会默认加上HOST属性，并且永远放在请求的前部
-	urlInfo, err := url.Parse(URL)
-	if err != nil {
-		return req, err
-	}
-	g.Headers["Host"] = urlInfo.Host
+
 	// Referer
 	if refererURL != "" {
 		g.Headers["Referer"] = refererURL
