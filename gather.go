@@ -200,6 +200,21 @@ func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (ht
 	return g.request(req)
 }
 
+//以json的方式post数据,手动设置Cookie,Cookie留空则自动继承上次抓取时使用的Cookie
+func (g *GatherStruct) PostJson(URL, refererURL, postXML string) (html, returnedURL string, err error) {
+	return g.PostJsonUtil(URL, refererURL, "", postXML)
+}
+
+//以json的方式post数据,手动设置Cookie,Cookie留空则自动继承上次抓取时使用的Cookie
+func (g *GatherStruct) PostJsonUtil(URL, refererURL, cookies, postXML string) (html, returnedURL string, err error) {
+	g.Headers["Content-Type"] = "application/json"
+	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postXML))
+	if err != nil {
+		return "", "", err
+	}
+	return g.request(req)
+}
+
 func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
 	return g.PostMultipartformDataUtil(URL, refererURL, "", boundary, postValueMap, postFileMap)
 }
