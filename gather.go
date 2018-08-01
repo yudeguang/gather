@@ -16,11 +16,11 @@ import (
 	"time"
 )
 
-//Headers与J(cookies)都大写导出，允许在执行过程中任意修改
+//内部变量全部大写导出，允许在执行过程中任意修改
 type GatherStruct struct {
-	client  *http.Client
-	Headers map[string]string //定制header
-	J       *webCookieJar     //cookies
+	Client  *http.Client
+	Headers map[string]string
+	J       *webCookieJar
 }
 
 //multipart/form-data 上传文件的结构体
@@ -34,11 +34,18 @@ type multipartPostFile struct {
 func NewGather(defaultAgent string, isCookieLogOpen bool) *GatherStruct {
 	var headers = make(map[string]string)
 	headers["User-Agent"] = defaultAgent
-	return NewGatherUtil(headers, 300, isCookieLogOpen)
+	return NewGatherUtil(headers, "", 300, isCookieLogOpen)
+}
+
+//通过代理服务器抓取数据 proxyURL参数如:https://104.207.139.207:8080
+func NewGatherProxy(defaultAgent string, proxyURL string, isCookieLogOpen bool) *GatherStruct {
+	var headers = make(map[string]string)
+	headers["User-Agent"] = defaultAgent
+	return NewGatherUtil(headers, proxyURL, 300, isCookieLogOpen)
 }
 
 //实例化Gather,HTTP头可以全部自定义,isCookieLogOpen为Cookie变更时是否打印
-func NewGatherUtil(headers map[string]string, timeOut int, isCookieLogOpen bool) *GatherStruct {
+func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCookieLogOpen bool) *GatherStruct {
 	var gather GatherStruct
 	gather.Headers = make(map[string]string)
 	//先判断是不是从NewGather实例化而来,注意,此处排除用NewGatherUtil时只添加了一个User-Agent的情况,因为一般这种情况不存在
@@ -77,12 +84,24 @@ func NewGatherUtil(headers map[string]string, timeOut int, isCookieLogOpen bool)
 		gather.Headers = headers
 	}
 	gather.J = newWebCookieJar(isCookieLogOpen)
-	tr := &http.Transport{
-		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
-		DisableCompression: true,
+	tr := new(http.Transport)
+	if proxyURL == "" {
+		tr = &http.Transport{
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+			DisableCompression: true,
+		}
+	} else {
+		//设置代理服务器 proxyUrl 指类似 https://104.207.139.207:8080
+		proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
+		tr = &http.Transport{
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+			DisableCompression: true,
+			Proxy:              proxy,
+		}
 	}
-	gather.client = &http.Client{Transport: tr, Jar: gather.J}
-	gather.client.Timeout = time.Duration(timeOut) * time.Second
+
+	gather.Client = &http.Client{Transport: tr, Jar: gather.J}
+	gather.Client.Timeout = time.Duration(timeOut) * time.Second
 	return &gather
 }
 
@@ -127,7 +146,7 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 
 //最终抓取HTML
 func (g *GatherStruct) request(req *http.Request) (html, returnedURL string, err error) {
-	resp, err := g.client.Do(req)
+	resp, err := g.Client.Do(req)
 	if err != nil {
 		return "", "", err
 	}
