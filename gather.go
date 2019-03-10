@@ -109,7 +109,10 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 		gather.Headers = headers
 	}
 	gather.J = newWebCookieJar(isCookieLogOpen)
-	tr := new(http.Transport)
+	tr := &http.Transport{
+		//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+		DisableKeepAlives: true, //自动释放HTTP链接，以免启动多个和占用了所有端口
+	}
 	if proxyURL == "" {
 		tr = &http.Transport{
 			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
@@ -205,6 +208,18 @@ func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[str
 	postDataStr := postValues.Encode()
 	postDataBytes := []byte(postDataStr)
 	postBytesReader := bytes.NewReader(postDataBytes)
+	//post Content-Type
+	g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
+	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
+	if err != nil {
+		return "", "", err
+	}
+	return g.request(req)
+}
+
+//POST二进制
+func (g *GatherStruct) PostBytes(URL, refererURL, cookies string, postBytes []byte) (html, returnedURL string, err error) {
+	postBytesReader := bytes.NewReader(postBytes)
 	//post Content-Type
 	g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
@@ -360,7 +375,6 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 	if err != nil {
 		return req, err
 	}
-
 	// Referer
 	if refererURL != "" {
 		g.Headers["Referer"] = refererURL
@@ -390,6 +404,7 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 //最终抓取HTML
 func (g *GatherStruct) request(req *http.Request) (html, returnedURL string, err error) {
 	resp, err := g.Client.Do(req)
+
 	if err != nil {
 		return "", "", err
 	}
