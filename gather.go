@@ -208,8 +208,9 @@ func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[str
 	postDataStr := postValues.Encode()
 	postDataBytes := []byte(postDataStr)
 	postBytesReader := bytes.NewReader(postDataBytes)
-	//post Content-Type
-	g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
+	if contentType, _ := g.Headers["Content-Type"]; contentType == "" {
+		g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
+	}
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
 	if err != nil {
 		return "", "", err
@@ -220,8 +221,6 @@ func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[str
 //POST二进制
 func (g *GatherStruct) PostBytes(URL, refererURL, cookies string, postBytes []byte) (html, returnedURL string, err error) {
 	postBytesReader := bytes.NewReader(postBytes)
-	//post Content-Type
-	g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
 	if err != nil {
 		return "", "", err
