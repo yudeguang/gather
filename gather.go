@@ -1,3 +1,8 @@
+// Copyright 2020 ratelimit Author(https://github.com/yudeguang/ratelimit). All Rights Reserved.
+//
+// This Source Code Form is subject to the terms of the MIT License.
+// If a copy of the MIT was not distributed with this file,
+// You can obtain one at https://github.com/yudeguang/ratelimit.
 //模拟浏览器进行数据采集包,可较方便的定义http头，同时全自动化处理cookies
 package gather
 
@@ -6,6 +11,7 @@ import (
 	"compress/gzip"
 	"crypto/tls"
 	"fmt"
+	"golang.org/x/text/transform"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,9 +24,10 @@ import (
 
 //内部变量全部大写导出，允许在执行过程中任意修改
 type GatherStruct struct {
-	Client  *http.Client
-	Headers map[string]string
-	J       *webCookieJar
+	Client                  *http.Client
+	Headers                 map[string]string
+	J                       *webCookieJar
+	HTMLShouldConvertToUTF8 bool //网页是否强制转换为UTF8
 }
 
 /*
@@ -408,11 +415,21 @@ func (g *GatherStruct) request(req *http.Request) (html, returnedURL string, err
 		return "", "", err
 	}
 	defer resp.Body.Close()
-	// 200表示成功获取
-	if resp.StatusCode != 200 {
+	//注意200,202都表示成功
+	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
 		return "", "", fmt.Errorf("http状态码:" + strconv.Itoa(resp.StatusCode))
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	var data []byte
+	if g.HTMLShouldConvertToUTF8 {
+		//判断网页是什么编码
+		e := determineEncoding(resp.Body)
+		//转换为utf8
+		utf8Reader := transform.NewReader(resp.Body, e.NewDecoder())
+		data, err = ioutil.ReadAll(utf8Reader)
+	} else {
+		data, err = ioutil.ReadAll(resp.Body)
+	}
+
 	if err != nil {
 		return "", "", err
 	}
