@@ -1,8 +1,9 @@
-// Copyright 2020 ratelimit Author(https://github.com/yudeguang/ratelimit). All Rights Reserved.
+// Copyright 2020 ratelimit Author(https://github.com/yudeguang/gather). All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the MIT License.
 // If a copy of the MIT was not distributed with this file,
-// You can obtain one at https://github.com/yudeguang/ratelimit.
+// You can obtain one at https://github.com/yudeguang/gather.
+//模拟浏览器进行数据采集包,可较方便的定义http头，同时全自动化处理cookies
 package gather
 
 import (
