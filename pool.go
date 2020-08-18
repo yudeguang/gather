@@ -4,20 +4,20 @@ import (
 	"sync"
 )
 
-type gatherPool struct {
+type Pool struct {
 	unUsed sync.Map        //空闲的Pool下标
 	pool   []*GatherStruct //缓存池
 }
 
 //池化技术 同时申明若干个，以备使用，避免频繁的申明回收,最多100个
-func NewGatherUtilPool(headers map[string]string, proxyURL string, timeOut int, isCookieLogOpen bool, num int) *gatherPool {
+func NewGatherUtilPool(headers map[string]string, proxyURL string, timeOut int, isCookieLogOpen bool, num int) *Pool {
 	if num <= 0 {
 		num = 1
 	}
 	if num > 100 {
 		num = 100
 	}
-	var gp gatherPool
+	var gp Pool
 
 	for i := 0; i < num; i++ {
 		ga := NewGatherUtil(headers, proxyURL, timeOut, isCookieLogOpen)
@@ -28,7 +28,7 @@ func NewGatherUtilPool(headers map[string]string, proxyURL string, timeOut int, 
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *gatherPool) PoolGet(URL, refererURL string) (html, redirectURL string, err error) {
+func (p *Pool) PoolGet(URL, refererURL string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
@@ -50,7 +50,7 @@ func (p *gatherPool) PoolGet(URL, refererURL string) (html, redirectURL string, 
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *gatherPool) PoolGetUtil(URL, refererURL, cookies string) (html, redirectURL string, err error) {
+func (p *Pool) PoolGetUtil(URL, refererURL, cookies string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
@@ -72,7 +72,7 @@ func (p *gatherPool) PoolGetUtil(URL, refererURL, cookies string) (html, redirec
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *gatherPool) PoolPost(URL, refererURL string, postMap map[string]string) (html, redirectURL string, err error) {
+func (p *Pool) PoolPost(URL, refererURL string, postMap map[string]string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
@@ -94,7 +94,7 @@ func (p *gatherPool) PoolPost(URL, refererURL string, postMap map[string]string)
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *gatherPool) PoolPostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, redirectURL string, err error) {
+func (p *Pool) PoolPostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
