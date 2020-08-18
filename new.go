@@ -118,7 +118,7 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 	}
 	if proxyURL == "" {
 		tr = &http.Transport{
-			DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
+			//DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
 			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 			DisableCompression: true,
 			Dial: func(netw, addr string) (net.Conn, error) {
@@ -134,7 +134,7 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 		//设置代理服务器 proxyUrl 指类似 https://104.207.139.207:8080
 		proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
 		tr = &http.Transport{
-			DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
+			//DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
 			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 			DisableCompression: true,
 			Proxy:              proxy,
