@@ -71,7 +71,7 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 }
 
 //最终抓取HTML
-func (g *GatherStruct) request(req *http.Request) (html, returnedURL string, err error) {
+func (g *GatherStruct) request(req *http.Request) (html, redirectURL string, err error) {
 	resp, err := g.Client.Do(req)
 
 	if err != nil {

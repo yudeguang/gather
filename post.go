@@ -17,7 +17,7 @@ import (
 post方式获取数据,自动继承先前的cookies
 URL:指待抓取的URL
 refererURL:上一次访问的URL。某些防抓取比较严格的网站会对上次访问的页面URL进行验证
-returnedURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
+redirectURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
 postMap:指post过去的相关数据
 
 例:
@@ -25,9 +25,9 @@ ga:= NewGather("chrome", false)
 postMap := make(map[string]string)
 postMap["user"] = "ydg"
 postMap["password"] = "abcdef"
-html, returnedURL, err := ga.Post("https://weibo.com/xxxxx", "", postMap)
+html, redirectURL, err := ga.Post("https://weibo.com/xxxxx", "", postMap)
 */
-func (g *GatherStruct) Post(URL, refererURL string, postMap map[string]string) (html, returnedURL string, err error) {
+func (g *GatherStruct) Post(URL, refererURL string, postMap map[string]string) (html, redirectURL string, err error) {
 	return g.PostUtil(URL, refererURL, "", postMap)
 }
 
@@ -35,7 +35,7 @@ func (g *GatherStruct) Post(URL, refererURL string, postMap map[string]string) (
 post方式获取数据,手动增加cookies
 URL:指待抓取的URL
 refererURL:上一次访问的URL。某些防抓取比较严格的网站会对上次访问的页面URL进行验证
-returnedURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
+redirectURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
 postMap:指post过去的相关数据
 例:
 ga := NewGather("chrome", false)
@@ -43,9 +43,9 @@ cookies := `SINAGLOBAL=8868584542946.604.1509350660873;??????????; YF-Page-G0=b9
 postMap := make(map[string]string)
 postMap["user"] = "ydg"
 postMap["password"] = "abcdef"
-html, returnedURL, err := ga.PostUtil("https://weibo.com/xxxxx", "",cookies, postMap)
+html, redirectURL, err := ga.PostUtil("https://weibo.com/xxxxx", "",cookies, postMap)
 */
-func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
 	postValues := url.Values{}
@@ -66,7 +66,7 @@ func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[str
 }
 
 //POST二进制
-func (g *GatherStruct) PostBytes(URL, refererURL, cookies string, postBytes []byte) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostBytes(URL, refererURL, cookies string, postBytes []byte) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
 	postBytesReader := bytes.NewReader(postBytes)
@@ -81,14 +81,14 @@ func (g *GatherStruct) PostBytes(URL, refererURL, cookies string, postBytes []by
 以XML的方式post数据,自动继承先前的cookies
 URL:指待抓取的URL
 refererURL:上一次访问的URL。某些防抓取比较严格的网站会对上次访问的页面URL进行验证
-returnedURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
+redirectURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
 postXML:指待Post的XML数据，文本类型
 例:
 ga := gather.NewGather("chrome", false)
 postXML := `<?xml version="1.0" encoding="utf-8"?><loin><user>ydg</user><passord>abcdef</passord></loin>`
-html, returnedURL, err := ga.PostXML(`https://weibo.com/xxxxx`, "", postXML)
+html, redirectURL, err := ga.PostXML(`https://weibo.com/xxxxx`, "", postXML)
 */
-func (g *GatherStruct) PostXML(URL, refererURL, postXML string) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostXML(URL, refererURL, postXML string) (html, redirectURL string, err error) {
 	return g.PostXMLUtil(URL, refererURL, "", postXML)
 }
 
@@ -96,7 +96,7 @@ func (g *GatherStruct) PostXML(URL, refererURL, postXML string) (html, returnedU
 以XML的方式post数据,手动增加cookies
 URL:指待抓取的URL
 refererURL:上一次访问的URL。某些防抓取比较严格的网站会对上次访问的页面URL进行验证
-returnedURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
+redirectURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
 cookies:文本形式，对于某些要求登录的网站，登录之后，直接从浏览器中把Cookie复制进去即可
 postXML:指待Post的XML数据，文本类型
 
@@ -104,9 +104,9 @@ postXML:指待Post的XML数据，文本类型
 ga := gather.NewGather("chrome", false)
 cookies := `SINAGLOBAL=8868584542946.604.1509350660873;??????????; YF-Page-G0=b9385a03a044baf8db46b84f3ff125a0`
 postXML := `<?xml version="1.0" encoding="utf-8"?><loin><user>ydg</user><passord>abcdef</passord></loin>`
-html, returnedURL, err := ga.PostXML(`https://weibo.com/xxxxx`, "", cookies, postXML)
+html, redirectURL, err := ga.PostXML(`https://weibo.com/xxxxx`, "", cookies, postXML)
 */
-func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
 	g.Headers["Content-Type"] = "application/xml"
@@ -121,15 +121,15 @@ func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (ht
 以json的方式post数据,自动继承先前的cookies
 URL:指待抓取的URL
 refererURL:上一次访问的URL。某些防抓取比较严格的网站会对上次访问的页面URL进行验证
-returnedURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
+redirectURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
 postJson:指待Post的json数据，文本类型
 
 例:
 ga := gather.NewGather("chrome", false)
 postJson := `{"user":"ydg","password":"abcdesg"}`
-html, returnedURL, err := ga.PostJson(`https://weibo.com/xxxxx`, "", postJson)
+html, redirectURL, err := ga.PostJson(`https://weibo.com/xxxxx`, "", postJson)
 */
-func (g *GatherStruct) PostJson(URL, refererURL, postJson string) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostJson(URL, refererURL, postJson string) (html, redirectURL string, err error) {
 	return g.PostJsonUtil(URL, refererURL, "", postJson)
 }
 
@@ -137,7 +137,7 @@ func (g *GatherStruct) PostJson(URL, refererURL, postJson string) (html, returne
 以json的方式post数据,手动增加cookies
 URL:指待抓取的URL
 refererURL:上一次访问的URL。某些防抓取比较严格的网站会对上次访问的页面URL进行验证
-returnedURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
+redirectURL:最终实际访问到内容的URL。因为有时候会碰到301跳转等情况，最终访问的URL并非输入的URL
 cookies:文本形式，对于某些要求登录的网站，登录之后，直接从浏览器中把Cookie复制进去即可
 postJson:指待Post的json数据，文本类型
 
@@ -145,9 +145,9 @@ postJson:指待Post的json数据，文本类型
 ga := gather.NewGather("chrome", false)
 cookies := `SINAGLOBAL=8868584542946.604.1509350660873;??????????; YF-Page-G0=b9385a03a044baf8db46b84f3ff125a0`
 postJson := `{"user":"ydg","password":"abcdesg"}`
-html, returnedURL, err := ga.PostJsonUtil(`https://weibo.com/xxxxx`, "", cookies, postJson)
+html, redirectURL, err := ga.PostJsonUtil(`https://weibo.com/xxxxx`, "", cookies, postJson)
 */
-func (g *GatherStruct) PostJsonUtil(URL, refererURL, cookies, postJson string) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostJsonUtil(URL, refererURL, cookies, postJson string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
 	g.Headers["Content-Type"] = "application/json"
@@ -166,7 +166,7 @@ type multipartPostFile struct {
 }
 
 //multipart/form-data方式POST数据,手动增加cookies
-func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, redirectURL string, err error) {
 	return g.PostMultipartformDataUtil(URL, refererURL, "", boundary, postValueMap, postFileMap)
 }
 
@@ -175,7 +175,7 @@ func (g *GatherStruct) PostMultipartformData(URL, refererURL, cookies, boundary 
 //postValueMap指post的普通文本,只包含name和value
 //postFileMap指上传的文件,比如图片,需在调用此函数前自行转换成[]byte,当然POST协议也可使用base64编码后,不过在此忽略此用法,base64也请转换成[]byte
 //multipart/form-data数据格式参见标准库中： mime\multipart\testdata\nested-mime,注意此处file文件是用的base64编码后的
-func (g *GatherStruct) PostMultipartformDataUtil(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, returnedURL string, err error) {
+func (g *GatherStruct) PostMultipartformDataUtil(URL, refererURL, cookies, boundary string, postValueMap map[string]string, postFileMap map[string]multipartPostFile) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
 	if boundary == "" {
