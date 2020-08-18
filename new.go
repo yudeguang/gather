@@ -8,6 +8,7 @@ package gather
 
 import (
 	"crypto/tls"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -113,20 +114,38 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 	gather.J = newWebCookieJar(isCookieLogOpen)
 	tr := &http.Transport{
 		//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true, //自动释放HTTP链接，以免启动多个和占用了所有端口
+		//DisableKeepAlives: true, //自动释放HTTP链接，以免启动多个和占用了所有端口
 	}
 	if proxyURL == "" {
 		tr = &http.Transport{
+			DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
 			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 			DisableCompression: true,
+			Dial: func(netw, addr string) (net.Conn, error) {
+				c, err := net.DialTimeout(netw, addr, time.Second*10)
+				if err != nil {
+					return nil, err
+				}
+				c.(*net.TCPConn).SetLinger(3)
+				return c, nil
+			},
 		}
 	} else {
 		//设置代理服务器 proxyUrl 指类似 https://104.207.139.207:8080
 		proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
 		tr = &http.Transport{
+			DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
 			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 			DisableCompression: true,
 			Proxy:              proxy,
+			Dial: func(netw, addr string) (net.Conn, error) {
+				c, err := net.DialTimeout(netw, addr, time.Second*10)
+				if err != nil {
+					return nil, err
+				}
+				c.(*net.TCPConn).SetLinger(3)
+				return c, nil
+			},
 		}
 	}
 
