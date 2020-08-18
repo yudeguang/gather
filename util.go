@@ -46,11 +46,11 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 	}
 	// Referer
 	if refererURL != "" {
-		g.Headers["Referer"] = refererURL
+		g.safeHeaders.Store("Referer", refererURL)
 	}
 	//cookies
 	if cookies != "" {
-		g.Headers["Cookie"] = cookies
+		g.safeHeaders.Store("Cookie", cookies)
 	}
 	//把header 按顺序添加进去
 	type headerStruct struct {
@@ -58,9 +58,12 @@ func (g *GatherStruct) newHttpRequest(method, URL, refererURL, cookies string, b
 		v string
 	}
 	var h []headerStruct
-	for k, v := range g.Headers {
-		h = append(h, headerStruct{k, v})
-	}
+
+	g.safeHeaders.Range(func(k, v interface{}) bool {
+		h = append(h, headerStruct{k.(string), v.(string)})
+		return true
+	})
+
 	sort.Slice(h, func(i, j int) bool {
 		return h[i].k <= h[j].k
 	})

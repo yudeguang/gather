@@ -18,9 +18,10 @@ import (
 
 //内部变量全部大写导出，允许在执行过程中任意修改
 type GatherStruct struct {
-	Client  *http.Client
-	Headers map[string]string
-	J       *webCookieJar
+	Client      *http.Client
+	Headers     map[string]string
+	safeHeaders sync.Map
+	J           *webCookieJar
 	//有较小的概率，如果多人都是用的同一个对象抓取，会出现 fatal error: concurrent map writes
 	//所以，建议是每个程序创建单独对象
 	locker sync.Mutex
@@ -151,5 +152,8 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 
 	gather.Client = &http.Client{Transport: tr, Jar: gather.J}
 	gather.Client.Timeout = time.Duration(timeOut) * time.Second
+	for k, v := range gather.Headers {
+		gather.safeHeaders.Store(k, v)
+	}
 	return &gather
 }

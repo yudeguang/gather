@@ -55,8 +55,8 @@ func (g *GatherStruct) PostUtil(URL, refererURL, cookies string, postMap map[str
 	postDataStr := postValues.Encode()
 	postDataBytes := []byte(postDataStr)
 	postBytesReader := bytes.NewReader(postDataBytes)
-	if contentType, _ := g.Headers["Content-Type"]; contentType == "" {
-		g.Headers["Content-Type"] = "application/x-www-form-urlencoded; param=value"
+	if _, eixst := g.safeHeaders.Load("Content-Type"); !eixst {
+		g.safeHeaders.Store("Content-Type", "application/x-www-form-urlencoded; param=value")
 	}
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, postBytesReader)
 	if err != nil {
@@ -109,7 +109,7 @@ html, redirectURL, err := ga.PostXML(`https://weibo.com/xxxxx`, "", cookies, pos
 func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
-	g.Headers["Content-Type"] = "application/xml"
+	g.safeHeaders.Store("Content-Type", "application/xml")
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postXML))
 	if err != nil {
 		return "", "", err
@@ -150,7 +150,7 @@ html, redirectURL, err := ga.PostJsonUtil(`https://weibo.com/xxxxx`, "", cookies
 func (g *GatherStruct) PostJsonUtil(URL, refererURL, cookies, postJson string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
-	g.Headers["Content-Type"] = "application/json"
+	g.safeHeaders.Store("Content-Type", "application/json")
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postJson))
 	if err != nil {
 		return "", "", err
@@ -193,8 +193,7 @@ func (g *GatherStruct) PostMultipartformDataUtil(URL, refererURL, cookies, bound
 			string(onePostFile.content)
 	}
 	postData = postData + "\r\n" + boundary + `--`
-
-	g.Headers["Content-Type"] = "multipart/form-data; boundary=" + boundary
+	g.safeHeaders.Store("Content-Type", "multipart/form-data; boundary="+boundary)
 	req, err := http.NewRequest("POST", URL, strings.NewReader(postData))
 	if err != nil {
 		return "", "", err
