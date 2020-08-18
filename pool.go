@@ -28,7 +28,7 @@ func NewGatherUtilPool(headers map[string]string, proxyURL string, timeOut int, 
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *Pool) PoolGet(URL, refererURL string) (html, redirectURL string, err error) {
+func (p *Pool) Get(URL, refererURL string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
@@ -50,7 +50,7 @@ func (p *Pool) PoolGet(URL, refererURL string) (html, redirectURL string, err er
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *Pool) PoolGetUtil(URL, refererURL, cookies string) (html, redirectURL string, err error) {
+func (p *Pool) GetUtil(URL, refererURL, cookies string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
@@ -72,7 +72,7 @@ func (p *Pool) PoolGetUtil(URL, refererURL, cookies string) (html, redirectURL s
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *Pool) PoolPost(URL, refererURL string, postMap map[string]string) (html, redirectURL string, err error) {
+func (p *Pool) Post(URL, refererURL string, postMap map[string]string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
@@ -94,7 +94,7 @@ func (p *Pool) PoolPost(URL, refererURL string, postMap map[string]string) (html
 }
 
 //从缓存池中 随便获取一个，然后再利用
-func (p *Pool) PoolPostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, redirectURL string, err error) {
+func (p *Pool) PostUtil(URL, refererURL, cookies string, postMap map[string]string) (html, redirectURL string, err error) {
 	//这个地方要找到有能用的为止
 	find := false
 	pool_index := -1
