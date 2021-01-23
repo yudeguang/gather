@@ -109,7 +109,10 @@ html, redirectURL, err := ga.PostXML(`https://weibo.com/xxxxx`, "", cookies, pos
 func (g *GatherStruct) PostXMLUtil(URL, refererURL, cookies, postXML string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
-	g.safeHeaders.Store("Content-Type", "application/xml")
+	//不存在，就写一个默认的进去
+	if _, exist := g.safeHeaders.Load("Content-Type"); !exist {
+		g.safeHeaders.Store("Content-Type", "application/xml")
+	}
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postXML))
 	if err != nil {
 		return "", "", err
@@ -150,7 +153,9 @@ html, redirectURL, err := ga.PostJsonUtil(`https://weibo.com/xxxxx`, "", cookies
 func (g *GatherStruct) PostJsonUtil(URL, refererURL, cookies, postJson string) (html, redirectURL string, err error) {
 	g.locker.Lock()
 	defer g.locker.Unlock()
-	g.safeHeaders.Store("Content-Type", "application/json")
+	if _, exist := g.safeHeaders.Load("Content-Type"); !exist {
+		g.safeHeaders.Store("Content-Type", "application/json")
+	}
 	req, err := g.newHttpRequest("POST", URL, refererURL, cookies, strings.NewReader(postJson))
 	if err != nil {
 		return "", "", err
