@@ -9,6 +9,7 @@ import (
 type Pool struct {
 	unUsed sync.Map        //空闲的Pool下标
 	pool   []*GatherStruct //缓存池
+	locker sync.Mutex
 }
 
 var errNoFreeClinetFind = fmt.Errorf("time out,no free client find")
@@ -73,29 +74,24 @@ func (p *Pool) PostUtil(URL, refererURL, cookies string, postMap map[string]stri
 
 //设置超时30秒超时，如果没有找到就返回-1表示失败
 func (p *Pool) getPoolIndex() int {
-	find := false
+	p.locker.Lock()
+	defer p.locker.Unlock()
 	pool_index := -1
-	num := 0
-	for {
+	for num := 0; num < 600; num++ {
 		p.unUsed.Range(func(k, v interface{}) bool {
+			pool_index = k.(int)
 			if pool_index == -1 {
-				pool_index = k.(int)
-				find = true
+				return true
+			} else {
+				//false表示不再继续遍历
+				return false
 			}
-			return true
 		})
-		if find {
+		if pool_index != -1 {
 			p.unUsed.Delete(pool_index)
 			break
 		}
 		time.Sleep(time.Millisecond * 100)
-		num++
-		if num >= 600 {
-			return -1
-		}
-		if pool_index != -1 {
-			return pool_index
-		}
 	}
-	return -1
+	return pool_index
 }
