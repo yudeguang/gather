@@ -72,7 +72,7 @@ func (p *Pool) PostUtil(URL, refererURL, cookies string, postMap map[string]stri
 	return p.pool[pool_index].PostUtil(URL, refererURL, cookies, postMap)
 }
 
-//设置超时30秒超时，如果没有找到就返回-1表示失败
+//设置超时30秒超时 ，如果没有找到就返回-1表示失败
 func (p *Pool) getPoolIndex() int {
 	p.locker.Lock()
 	defer p.locker.Unlock()
