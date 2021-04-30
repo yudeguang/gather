@@ -124,12 +124,13 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 //全局用特定的httpTransport
 var transportNoProxy *http.Transport = nil
 var transportWithProxy *http.Transport = nil
-var transportLocker 	sync.Mutex
+var transportLocker sync.Mutex
+
 func getHttpTransport(proxyURL string) *http.Transport {
 	transportLocker.Lock()
 	defer transportLocker.Unlock()
 	if proxyURL == "" {
-		if transportNoProxy == nil{
+		if transportNoProxy == nil {
 			transportNoProxy = &http.Transport{
 				//DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
 				TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
@@ -149,11 +150,12 @@ func getHttpTransport(proxyURL string) *http.Transport {
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 			}
+			transportNoProxy.MaxIdleConnsPerHost = 100 ////单机允许最多100个连接，即长连接
 		}
 		return transportNoProxy
 	} else {
 		//设置代理服务器 proxyUrl 指类似 https://104.207.139.207:8080
-		if transportWithProxy == nil{
+		if transportWithProxy == nil {
 			proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
 			transportWithProxy = &http.Transport{
 				//DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
@@ -175,6 +177,7 @@ func getHttpTransport(proxyURL string) *http.Transport {
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 			}
+			transportWithProxy.MaxIdleConnsPerHost = 100 ////单机允许最多100个连接，即长连接
 		}
 		return transportWithProxy
 	}
