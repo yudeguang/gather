@@ -22,6 +22,10 @@ func NewGatherUtilPool(headers map[string]string, proxyURL string, timeOut int, 
 	if num > 100 {
 		num = 100
 	}
+	//重设一下maxIdleConns以适应不同的需求
+	if num >= 10 && num <= 100 {
+		maxIdleConns = num
+	}
 	var gp Pool
 
 	for i := 0; i < num; i++ {

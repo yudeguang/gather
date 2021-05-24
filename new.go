@@ -16,6 +16,12 @@ import (
 	"time"
 )
 
+var maxIdleConns = 100
+
+//Transport结构体还有一个字段与idle池有关，那就是MaxIdleConns，
+//不同于MaxIdleConnsPerHost只针对某个host，MaxIdleConns是针对整
+//个Client的所有idle池中的连接数的和，这个和不能超过MaxIdleConns
+
 //内部变量全部大写导出，允许在执行过程中任意修改
 type GatherStruct struct {
 	Client      *http.Client
@@ -132,8 +138,8 @@ func getHttpTransport(proxyURL string) *http.Transport {
 	if proxyURL == "" {
 		if transportNoProxy == nil {
 			transportNoProxy = &http.Transport{
-				//DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
-				TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+				//DisableKeepAlives:  true, //http.Transport结构有一个DisableKeepAlives字段，其默认值为false，即启动keep-alive。若将其置为false，则关闭keep-alive
+				TLSClientConfig:    &tls.Config{InsecureSkipVerify: true}, //忽略认证
 				DisableCompression: true,
 				Dial: func(netw, addr string) (net.Conn, error) {
 					c, err := net.DialTimeout(netw, addr, time.Second*10)
@@ -145,12 +151,13 @@ func getHttpTransport(proxyURL string) *http.Transport {
 				},
 				//copy from http.DefaultTransport
 				ForceAttemptHTTP2:     true,
-				MaxIdleConns:          100,
+				MaxIdleConns:          maxIdleConns,
 				IdleConnTimeout:       90 * time.Second,
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 			}
-			transportNoProxy.MaxIdleConnsPerHost = 100 ////单机允许最多100个连接，即长连接
+			// 默认值为2，单机最大允许连接数，即长连接,默认值太小,这里，因为我们的实际应用往往是一个client只连接一台主机，所以直接设成与maxIdleConns相等
+			transportNoProxy.MaxIdleConnsPerHost = maxIdleConns
 		}
 		return transportNoProxy
 	} else {
@@ -158,7 +165,7 @@ func getHttpTransport(proxyURL string) *http.Transport {
 		if transportWithProxy == nil {
 			proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
 			transportWithProxy = &http.Transport{
-				//DisableKeepAlives:  true, //自动释放HTTP链接，以免启动多个和占用了所有端口
+				//DisableKeepAlives:  true, //http.Transport结构有一个DisableKeepAlives字段，其默认值为false，即启动keep-alive。若将其置为false，则关闭keep-alive
 				TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 				DisableCompression: true,
 				Proxy:              proxy,
@@ -172,12 +179,13 @@ func getHttpTransport(proxyURL string) *http.Transport {
 				},
 				//copy from http.DefaultTransport
 				ForceAttemptHTTP2:     true,
-				MaxIdleConns:          100,
+				MaxIdleConns:          maxIdleConns,
 				IdleConnTimeout:       90 * time.Second,
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 			}
-			transportWithProxy.MaxIdleConnsPerHost = 100 ////单机允许最多100个连接，即长连接
+			// 默认值为2，单机最大允许连接数，即长连接,默认值太小,这里，因为我们的实际应用往往是一个client只连接一台主机，所以直接设成与maxIdleConns相等
+			transportWithProxy.MaxIdleConnsPerHost = maxIdleConns
 		}
 		return transportWithProxy
 	}
