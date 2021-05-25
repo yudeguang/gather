@@ -16,11 +16,10 @@ import (
 	"time"
 )
 
-var maxIdleConns = 100
-
-//Transport结构体还有一个字段与idle池有关，那就是MaxIdleConns，
-//不同于MaxIdleConnsPerHost只针对某个host，MaxIdleConns是针对整
+//MaxIdleConns，与idle池有关,不同于MaxIdleConnsPerHost只针对某个host，MaxIdleConns是针对整
 //个Client的所有idle池中的连接数的和，这个和不能超过MaxIdleConns
+//这里，因为我们每个Client实际只连接一台主机，所以让MaxIdleConns与MaxIdleConnsPerHost一致
+var maxIdleConns = 100
 
 //内部变量全部大写导出，允许在执行过程中任意修改
 type GatherStruct struct {
@@ -138,7 +137,7 @@ func getHttpTransport(proxyURL string) *http.Transport {
 	if proxyURL == "" {
 		if transportNoProxy == nil {
 			transportNoProxy = &http.Transport{
-				//DisableKeepAlives:  true, //http.Transport结构有一个DisableKeepAlives字段，其默认值为false，即启动keep-alive。若将其置为false，则关闭keep-alive
+				//DisableKeepAlives:  true, //默认值为false，即启动keep-alive。若将其置为false，则关闭keep-alive
 				TLSClientConfig:    &tls.Config{InsecureSkipVerify: true}, //忽略认证
 				DisableCompression: true,
 				Dial: func(netw, addr string) (net.Conn, error) {
@@ -165,7 +164,7 @@ func getHttpTransport(proxyURL string) *http.Transport {
 		if transportWithProxy == nil {
 			proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
 			transportWithProxy = &http.Transport{
-				//DisableKeepAlives:  true, //http.Transport结构有一个DisableKeepAlives字段，其默认值为false，即启动keep-alive。若将其置为false，则关闭keep-alive
+				//DisableKeepAlives:  true, //默认值为false，即启动keep-alive。若将其置为false，则关闭keep-alive
 				TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
 				DisableCompression: true,
 				Proxy:              proxy,
