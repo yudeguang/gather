@@ -126,9 +126,9 @@ func NewGatherUtil(headers map[string]string, proxyURL string, timeOut int, isCo
 	return &gather
 }
 
-//全局用特定的httpTransport
+//全局用特定的httpTransport,只有无代理时，可以复用
 var transportNoProxy *http.Transport = nil
-var transportWithProxy *http.Transport = nil
+
 var transportLocker sync.Mutex
 
 func getHttpTransport(proxyURL string) *http.Transport {
@@ -160,7 +160,9 @@ func getHttpTransport(proxyURL string) *http.Transport {
 		}
 		return transportNoProxy
 	} else {
-		//设置代理服务器 proxyUrl 指类似 https://104.207.139.207:8080
+		//使用代理时，不能复用，因为代理一般需要经常更换
+		var transportWithProxy *http.Transport = nil
+		//设置代理服务器 proxyUrl 指类似 https://104.207.139.207:8080 http://104.207.139.207:8080
 		if transportWithProxy == nil {
 			proxy := func(_ *http.Request) (*url.URL, error) { return url.Parse(proxyURL) }
 			transportWithProxy = &http.Transport{
